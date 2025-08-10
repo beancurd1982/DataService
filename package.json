@@ -1,0 +1,13 @@
+{
+  "name": "com.yang.data-service",
+  "displayName": "Data Service",
+  "version": "1.0.0",
+  "unity": "2021.3",
+  "description": "Minimal Unity Package Manager package with a DataService class.",
+  "author": {
+    "name": "Yang",
+    "email": "douyangyang@hotmail.com"
+  },
+  "keywords": ["data", "service"],
+  "license": "MIT"
+}
