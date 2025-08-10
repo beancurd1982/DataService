@@ -1,14 +1,22 @@
 {
-  "name": "Yang.DataService.Tests",
-  "rootNamespace": "Yang.Data.Tests",
-  "references": ["Yang.DataService"],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "autoReferenced": true,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "defineConstraints": [],
-  "noEngineReferences": false,
-  "optionalUnityReferences": ["TestAssemblies"]
+    "name": "Yang.DataService.Tests",
+    "rootNamespace": "Yang.Data.Tests",
+    "references": [
+        "Yang.DataService",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
