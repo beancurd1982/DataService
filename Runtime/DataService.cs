@@ -6,37 +6,46 @@ namespace Yang.Data
 {
     public interface ITableData
     {
-        int TableId { get; }
+        uint TableId { get; }
     }
 
     public static class DataService
     {
-        private static readonly ConcurrentDictionary<Type, ConcurrentDictionary<int, object>> _registry
-            = new ConcurrentDictionary<Type, ConcurrentDictionary<int, object>>();
-        private static readonly ConcurrentDictionary<Type, object> _globalRegistry
-            = new ConcurrentDictionary<Type, object>();
+        private static readonly ConcurrentDictionary<uint, ITableData> TableDataRegistry = new ConcurrentDictionary<uint, ITableData>();
+        private static readonly ConcurrentDictionary<Type, object> GlobalDataRegistry = new ConcurrentDictionary<Type, object>();
 
         /// <summary>
         /// Registers an instance of the specified data type.
         /// </summary>
-        public static void RegisterTableData<T>(T instance) where T : ITableData
+        public static void RegisterTableData<T>(T instance) where T : ITableData, new()
         {
-            var bucket = _registry.GetOrAdd(typeof(T), _ => new ConcurrentDictionary<int, object>());
-            bucket[instance.TableId] = instance;
+            if (instance == null)
+                throw new ArgumentNullException(nameof(instance), "Instance cannot be null.");
+            if (!TableDataRegistry.TryAdd(instance.TableId, instance))
+                throw new InvalidOperationException($"An instance of {typeof(T).Name} with TableId={instance.TableId} is already registered.");
+        }
+
+        /// <summary>
+        /// Unregisters an instance of the specified data type by its TableId.
+        /// </summary>
+        /// <param name="tableId"></param>
+        public static void UnregisterTableData(uint tableId)
+        {
+            TableDataRegistry.TryRemove(tableId, out _);
         }
 
         /// <summary>
         /// Retrieves a previously registered instance of the specified type by ID.
         /// </summary>
-        public static T GetTableData<T>(int id) where T : ITableData
+        public static T GetTableData<T>(uint id) where T : ITableData
         {
-            if (_registry.TryGetValue(typeof(T), out var bucket) &&
-                bucket.TryGetValue(id, out var obj))
+            if (TableDataRegistry.TryGetValue(id, out var obj))
             {
-                return (T)obj;
+                if (obj is T data)
+                    return data;
+                throw new InvalidCastException($"Instance with ID {id} is not of type {typeof(T).Name}.");
             }
-
-            throw new KeyNotFoundException($"No instance of {typeof(T).Name} with TableId={id} found.");
+            throw new KeyNotFoundException($"No instance of {typeof(T).Name} registered with ID {id}.");
         }
 
         /// <summary>
@@ -45,7 +54,9 @@ namespace Yang.Data
         /// </summary>
         public static void RegisterGlobalData<T>(T instance)
         {
-            if (!_globalRegistry.TryAdd(typeof(T), instance))
+            if (instance == null)
+                throw new ArgumentNullException(nameof(instance), "Instance cannot be null.");
+            if (!GlobalDataRegistry.TryAdd(typeof(T), instance))
                 throw new InvalidOperationException($"{typeof(T).Name} already registered globally.");
         }
 
@@ -54,7 +65,7 @@ namespace Yang.Data
         /// </summary>
         public static T GetGlobalData<T>()
         {
-            if (_globalRegistry.TryGetValue(typeof(T), out var obj))
+            if (GlobalDataRegistry.TryGetValue(typeof(T), out var obj))
                 return (T)obj;
 
             throw new KeyNotFoundException($"No global instance of {typeof(T).Name} registered.");
