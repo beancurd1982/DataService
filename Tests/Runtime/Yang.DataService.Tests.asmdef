@@ -1,0 +1,14 @@
+{
+  "name": "Yang.DataService.Tests",
+  "rootNamespace": "Yang.Data.Tests",
+  "references": ["Yang.DataService"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "defineConstraints": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": ["TestAssemblies"]
+}
