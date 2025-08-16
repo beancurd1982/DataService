@@ -7,7 +7,7 @@ namespace Yang.Data.Tests
 {
     public class DataServiceTests
     {
-        private class TestTableData : ITableData
+        private class TestTableConfig : ITableData
         {
             public uint TableId { get; set; }
             public string Value { get; set; }
@@ -24,18 +24,18 @@ namespace Yang.Data.Tests
         [Test]
         public void RegisterTableData_Succeeds_WhenUniqueId()
         {
-            var data = new TestTableData { TableId = 1, Value = "A" };
+            var data = new TestTableConfig { TableId = 1, Value = "A" };
             DataService.RegisterTableData(data);
 
-            var retrieved = DataService.GetTableData<TestTableData>(1);
+            var retrieved = DataService.GetTableData<TestTableConfig>(1);
             Assert.AreSame(data, retrieved);
         }
 
         [Test]
         public void RegisterTableData_Throws_WhenDuplicateId()
         {
-            var data1 = new TestTableData { TableId = 1, Value = "A" };
-            var data2 = new TestTableData { TableId = 1, Value = "B" };
+            var data1 = new TestTableConfig { TableId = 1, Value = "A" };
+            var data2 = new TestTableConfig { TableId = 1, Value = "B" };
             DataService.RegisterTableData(data1);
 
             Assert.Throws<InvalidOperationException>(() => DataService.RegisterTableData(data2));
@@ -44,18 +44,18 @@ namespace Yang.Data.Tests
         [Test]
         public void GetTableData_Throws_WhenNotRegistered()
         {
-            Assert.Throws<KeyNotFoundException>(() => DataService.GetTableData<TestTableData>(999));
+            Assert.Throws<KeyNotFoundException>(() => DataService.GetTableData<TestTableConfig>(999));
         }
 
         [Test]
         public void UnregisterTableData_RemovesInstance()
         {
-            var data = new TestTableData { TableId = 2, Value = "B" };
+            var data = new TestTableConfig { TableId = 2, Value = "B" };
             DataService.RegisterTableData(data);
 
             DataService.UnregisterTableData(2);
 
-            Assert.Throws<KeyNotFoundException>(() => DataService.GetTableData<TestTableData>(2));
+            Assert.Throws<KeyNotFoundException>(() => DataService.GetTableData<TestTableConfig>(2));
         }
     }
 }
