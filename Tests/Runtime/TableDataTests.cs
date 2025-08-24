@@ -9,17 +9,17 @@ namespace Yang.Data.Tests
         {
             var config = new TableConfig();
             string oldName = null, newName = null;
-            config.NameChanged += (sender, e) =>
+            config.AsRead().NameChanged += (sender, e) =>
             {
                 oldName = e.OldName;
                 newName = e.NewName;
             };
 
-            config.Modifier.Name = "Alice";
+            config.AsWrite().SetName("Alice");
             Assert.AreEqual(null, oldName);
             Assert.AreEqual("Alice", newName);
 
-            config.Modifier.Name = "Bob";
+            config.AsWrite().SetName("Bob");
             Assert.AreEqual("Alice", oldName);
             Assert.AreEqual("Bob", newName);
         }
@@ -29,17 +29,17 @@ namespace Yang.Data.Tests
         {
             var config = new TableConfig();
             int oldAge = -1, newAge = -1;
-            config.AgeChanged += (sender, e) =>
+            config.AsRead().AgeChanged += (sender, e) =>
             {
                 oldAge = e.OldAge;
                 newAge = e.NewAge;
             };
 
-            config.Modifier.Age = 10;
+            config.AsWrite().SetAge(10);
             Assert.AreEqual(0, oldAge);
             Assert.AreEqual(10, newAge);
 
-            config.Modifier.Age = 20;
+            config.AsWrite().SetAge(20);
             Assert.AreEqual(10, oldAge);
             Assert.AreEqual(20, newAge);
         }
@@ -49,9 +49,9 @@ namespace Yang.Data.Tests
         {
             var config = new TableConfig();
             int eventCount = 0;
-            config.Modifier.Name = "Alice";
-            config.NameChanged += (sender, e) => eventCount++;
-            config.Modifier.Name = "Alice";
+            config.AsWrite().SetName("Alice");
+            config.AsRead().NameChanged += (sender, e) => eventCount++;
+            config.AsWrite().SetName("Alice");
             Assert.AreEqual(0, eventCount);
         }
 
@@ -60,9 +60,9 @@ namespace Yang.Data.Tests
         {
             var config = new TableConfig();
             int eventCount = 0;
-            config.Modifier.Age = 42;
-            config.AgeChanged += (sender, e) => eventCount++;
-            config.Modifier.Age = 42;
+            config.AsWrite().SetAge(42);
+            config.AsRead().AgeChanged += (sender, e) => eventCount++;
+            config.AsWrite().SetAge(42);
             Assert.AreEqual(0, eventCount);
         }
 
@@ -71,14 +71,14 @@ namespace Yang.Data.Tests
         {
             var config = new TableConfig();
             bool nameChanged = false, ageChanged = false;
-            config.NameChanged += (sender, e) => nameChanged = true;
-            config.AgeChanged += (sender, e) => ageChanged = true;
+            config.AsRead().NameChanged += (sender, e) => nameChanged = true;
+            config.AsRead().AgeChanged += (sender, e) => ageChanged = true;
 
-            config.Modifier.SetNameAndAge("Charlie", 99);
+            config.AsWrite().SetNameAndAge("Charlie", 99);
             Assert.IsTrue(nameChanged);
             Assert.IsTrue(ageChanged);
-            Assert.AreEqual("Charlie", config.Accessor.Name);
-            Assert.AreEqual(99, config.Accessor.Age);
+            Assert.AreEqual("Charlie", config.AsRead().Name);
+            Assert.AreEqual(99, config.AsRead().Age);
         }
     }
 
@@ -89,17 +89,17 @@ namespace Yang.Data.Tests
         {
             var status = new TableStatus();
             uint oldValue = 0, newValue = 0;
-            status.GameNumberChanged += (sender, e) =>
+            status.AsRead().GameNumberChanged += (sender, e) =>
             {
                 oldValue = e.OldGameNumber;
                 newValue = e.NewGameNumber;
             };
 
-            status.Modifier.GameNumber = 42;
+            status.AsWrite().SetGameNumber(42);
             Assert.AreEqual(0, oldValue);
             Assert.AreEqual(42, newValue);
 
-            status.Modifier.GameNumber = 100;
+            status.AsWrite().SetGameNumber(100);
             Assert.AreEqual(42, oldValue);
             Assert.AreEqual(100, newValue);
         }
@@ -108,20 +108,20 @@ namespace Yang.Data.Tests
         public void GameStateChange_RaisesEvent_WithCorrectValues()
         {
             var status = new TableStatus();
-            TableStatus.GameState oldState = TableStatus.GameState.NewGame, newState = TableStatus.GameState.NewGame;
-            status.GameStateChanged += (sender, e) =>
+            GameState oldState = GameState.NewGame, newState = GameState.NewGame;
+            status.AsRead().GameStateChanged += (sender, e) =>
             {
                 oldState = e.OldGameState;
                 newState = e.NewGameState;
             };
 
-            status.Modifier.GameState = TableStatus.GameState.ResultConfirmed;
-            Assert.AreEqual(TableStatus.GameState.NewGame, oldState);
-            Assert.AreEqual(TableStatus.GameState.ResultConfirmed, newState);
+            status.AsWrite().SetGameState(GameState.ResultConfirmed);
+            Assert.AreEqual(GameState.NewGame, oldState);
+            Assert.AreEqual(GameState.ResultConfirmed, newState);
 
-            status.Modifier.GameState = TableStatus.GameState.NewGame;
-            Assert.AreEqual(TableStatus.GameState.ResultConfirmed, oldState);
-            Assert.AreEqual(TableStatus.GameState.NewGame, newState);
+            status.AsWrite().SetGameState(GameState.NewGame);
+            Assert.AreEqual(GameState.ResultConfirmed, oldState);
+            Assert.AreEqual(GameState.NewGame, newState);
         }
 
         [Test]
@@ -129,9 +129,9 @@ namespace Yang.Data.Tests
         {
             var status = new TableStatus();
             int eventCount = 0;
-            status.Modifier.GameNumber = 7;
-            status.GameNumberChanged += (sender, e) => eventCount++;
-            status.Modifier.GameNumber = 7;
+            status.AsWrite().SetGameNumber(7);
+            status.AsRead().GameNumberChanged += (sender, e) => eventCount++;
+            status.AsWrite().SetGameNumber(7);
             Assert.AreEqual(0, eventCount);
         }
 
@@ -140,9 +140,9 @@ namespace Yang.Data.Tests
         {
             var status = new TableStatus();
             int eventCount = 0;
-            status.Modifier.GameState = TableStatus.GameState.NewGame;
-            status.GameStateChanged += (sender, e) => eventCount++;
-            status.Modifier.GameState = TableStatus.GameState.NewGame;
+            status.AsWrite().SetGameState(GameState.NewGame);
+            status.AsRead().GameStateChanged += (sender, e) => eventCount++;
+            status.AsWrite().SetGameState(GameState.NewGame);
             Assert.AreEqual(0, eventCount);
         }
 
@@ -150,11 +150,11 @@ namespace Yang.Data.Tests
         public void Accessor_ReflectsLatestValues()
         {
             var status = new TableStatus();
-            status.Modifier.GameNumber = 123;
-            status.Modifier.GameState = TableStatus.GameState.ResultConfirmed;
+            status.AsWrite().SetGameNumber(123);
+            status.AsWrite().SetGameState(GameState.ResultConfirmed);
 
-            Assert.AreEqual(123, status.Accessor.GameNumber);
-            Assert.AreEqual(TableStatus.GameState.ResultConfirmed, status.Accessor.GameState);
+            Assert.AreEqual(123, status.AsRead().GameNumber);
+            Assert.AreEqual(GameState.ResultConfirmed, status.AsRead().CurrentGameState);
         }
     }
 
@@ -173,13 +173,13 @@ namespace Yang.Data.Tests
         {
             var tableData = new TableData();
             string oldName = null, newName = null;
-            tableData.Config.NameChanged += (sender, e) =>
+            tableData.Config.AsRead().NameChanged += (sender, e) =>
             {
                 oldName = e.OldName;
                 newName = e.NewName;
             };
 
-            tableData.Config.Modifier.Name = "TestName";
+            tableData.Config.AsWrite().SetName("TestName");
             Assert.AreEqual(null, oldName);
             Assert.AreEqual("TestName", newName);
         }
@@ -189,13 +189,13 @@ namespace Yang.Data.Tests
         {
             var tableData = new TableData();
             int oldAge = -1, newAge = -1;
-            tableData.Config.AgeChanged += (sender, e) =>
+            tableData.Config.AsRead().AgeChanged += (sender, e) =>
             {
                 oldAge = e.OldAge;
                 newAge = e.NewAge;
             };
 
-            tableData.Config.Modifier.Age = 42;
+            tableData.Config.AsWrite().SetAge(42);
             Assert.AreEqual(0, oldAge);
             Assert.AreEqual(42, newAge);
         }
@@ -205,13 +205,13 @@ namespace Yang.Data.Tests
         {
             var tableData = new TableData();
             uint oldNumber = 0, newNumber = 0;
-            tableData.Status.GameNumberChanged += (sender, e) =>
+            tableData.Status.AsRead().GameNumberChanged += (sender, e) =>
             {
                 oldNumber = e.OldGameNumber;
                 newNumber = e.NewGameNumber;
             };
 
-            tableData.Status.Modifier.GameNumber = 99;
+            tableData.Status.AsWrite().SetGameNumber(99);
             Assert.AreEqual(0, oldNumber);
             Assert.AreEqual(99, newNumber);
         }
@@ -220,38 +220,38 @@ namespace Yang.Data.Tests
         public void TableData_Status_GameStateChange_RaisesEvent()
         {
             var tableData = new TableData();
-            TableStatus.GameState oldState = TableStatus.GameState.NewGame, newState = TableStatus.GameState.NewGame;
-            tableData.Status.GameStateChanged += (sender, e) =>
+            GameState oldState = GameState.NewGame, newState = GameState.NewGame;
+            tableData.Status.AsRead().GameStateChanged += (sender, e) =>
             {
                 oldState = e.OldGameState;
                 newState = e.NewGameState;
             };
 
-            tableData.Status.Modifier.GameState = TableStatus.GameState.ResultConfirmed;
-            Assert.AreEqual(TableStatus.GameState.NewGame, oldState);
-            Assert.AreEqual(TableStatus.GameState.ResultConfirmed, newState);
+            tableData.Status.AsWrite().SetGameState(GameState.ResultConfirmed);
+            Assert.AreEqual(GameState.NewGame, oldState);
+            Assert.AreEqual(GameState.ResultConfirmed, newState);
         }
 
         [Test]
         public void TableData_Config_Accessor_ReflectsLatestValues()
         {
             var tableData = new TableData();
-            tableData.Config.Modifier.Name = "AccessorTest";
-            tableData.Config.Modifier.Age = 77;
+            tableData.Config.AsWrite().SetName("AccessorTest");
+            tableData.Config.AsWrite().SetAge(77);
 
-            Assert.AreEqual("AccessorTest", tableData.Config.Accessor.Name);
-            Assert.AreEqual(77, tableData.Config.Accessor.Age);
+            Assert.AreEqual("AccessorTest", tableData.Config.AsRead().Name);
+            Assert.AreEqual(77, tableData.Config.AsRead().Age);
         }
 
         [Test]
         public void TableData_Status_Accessor_ReflectsLatestValues()
         {
             var tableData = new TableData();
-            tableData.Status.Modifier.GameNumber = 1234;
-            tableData.Status.Modifier.GameState = TableStatus.GameState.ResultConfirmed;
+            tableData.Status.AsWrite().SetGameNumber(1234);
+            tableData.Status.AsWrite().SetGameState(GameState.ResultConfirmed);
 
-            Assert.AreEqual(1234, tableData.Status.Accessor.GameNumber);
-            Assert.AreEqual(TableStatus.GameState.ResultConfirmed, tableData.Status.Accessor.GameState);
+            Assert.AreEqual(1234, tableData.Status.AsRead().GameNumber);
+            Assert.AreEqual(GameState.ResultConfirmed, tableData.Status.AsRead().CurrentGameState);
         }
     }
 }
